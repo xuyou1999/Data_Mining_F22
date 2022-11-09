@@ -8,8 +8,25 @@
 https://services6.arcgis.com/OO2s4OoyCZkYJ6oE/arcgis/rest/services/2109_STIB_MIVB_Network/FeatureServer
 
 ## Work Plan
-- Download location infor from ArcGIS
-- Figure out schedule
+### Schedule Example
+- line 25 at ULB, 08/23-27
+- Punctuality: count: <= 5
+- Regularity: count: >= 6
+
+### Puncturality
+- Option 1: track train timetable. Assmption1: total number of car match; 2: we can identify each car at each station. tram/metro/bus
+- Option 2: only consider station/stop
+- Standard: +-30s
+
+### Regularity
+- Formula
+- Find schedule waiting
+- Calculate actural waiting time
+- EWT
+
+### Big Delay
+- Based on station
+
 - From schedule, get peak/off-peak hours -> Punctuality/Regularity
 - Punctuality per line, stop, date
 

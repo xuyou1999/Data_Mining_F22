@@ -34,3 +34,9 @@ https://services6.arcgis.com/OO2s4OoyCZkYJ6oE/arcgis/rest/services/2109_STIB_MIV
 - Static locations for all stops and lines
 - Schedules
 - Car location per 30s: direction, last stop, distance from last stop
+
+# Problems
+- Time +2hrs?
+- Duplicate train/bus?
+- Missing train/bus?
+- Stop ID?

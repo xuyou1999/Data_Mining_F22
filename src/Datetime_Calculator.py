@@ -7,6 +7,9 @@ import numpy as np
 def datetime_calculator(Date1,Date2):
     
     #"H:M:S - H:M:S"
+    #Because the data has no minus sign like "-H:M;S", so we can do this.
+    #But the calcluation will produce "-H:M:S" if Date1 < Date2
+    #So normally there is no mistake.
     pattern1 = r"[0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
     if re.match(pattern1, Date1) is not None and re.match(pattern1, Date2) is not None:
         d1_seconds = int(Date1[0:2]) * 3600 + int(Date1[3:5]) * 60 + int(Date1[6:8])

@@ -40,3 +40,8 @@ https://services6.arcgis.com/OO2s4OoyCZkYJ6oE/arcgis/rest/services/2109_STIB_MIV
 - Duplicate train/bus?
 - Missing train/bus?
 - Stop ID?
+
+# Notes from lecture
+- Estimate arrival time by speed and distance from the map
+- Transform schedule time for clustering, and do models like DB Scan
+- No report, presentation and a brief description

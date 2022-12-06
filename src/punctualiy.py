@@ -16,6 +16,8 @@ def get_derived_var(stop, route_id, date, nbusy_time):
     stop_no_letter = ""
     if stop[-1].isalpha():
         stop_no_letter = stop[:-1]
+    else:
+        stop_no_letter = stop
     date_dt = "{}-{}-{}".format(str(date)[:4], str(date)[4:6], str(date)[-2:])
     # get route short name
     routes = pd.concat([pd.read_csv('../data/gtfs3Sept/routes.csv'), pd.read_csv('../data/gtfs23Sept/routes.csv')])

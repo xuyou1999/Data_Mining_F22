@@ -3,7 +3,7 @@ import numpy as np
 
 # example input variables
 route_id = 25
-trip_headsign = 'BOONDAEL GARE'
+direction_id = 1
 date = 20210907
 stop = '5407F'
 # nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
@@ -70,7 +70,7 @@ def get_new_nbusy_time_dt(new_nbusy_time, date):
                 new_nbusy_time_dt[i].append((pd.to_datetime(date_dt, format='%Y-%m-%d')+pd.Timedelta(days=1)).strftime("%Y-%m-%d")+" "+(h+new_nbusy_time[i][j][2:]))
     return new_nbusy_time_dt, date_dt
 
-def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
+def schedule(route_id, direction_id, date, day_of_week, stop, new_nbusy_time):
     # load data
     if date <= 20210919:
         trips = pd.read_csv('../data/gtfs3Sept/trips.csv')
@@ -82,7 +82,7 @@ def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
         stop_times = pd.read_csv('../data/gtfs23Sept/stop_times.csv')
     # trips
     trips_line = trips.loc[trips['route_id']==route_id,:]
-    trip_line_head = trips_line.loc[trips_line['trip_headsign']==trip_headsign,:]
+    trip_line_head = trips_line.loc[trips_line['direction_id']==direction_id,:]
     # calendar
     calendar_week = calendar.loc[((calendar['start_date']<=date) & (calendar['end_date']>=date)),:]
     calendar_week_day = calendar_week.loc[calendar_week[day_of_week]==1,:]
@@ -150,13 +150,13 @@ def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arr
     return on_time_rate
     
 
-def main(route_id, trip_headsign, date, stop, nbusy_time):
+def main(route_id, direction_id, date, stop, nbusy_time):
     stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
-    time_line_date_head_stop_nbusy, new_nbusy_time = schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time)
+    time_line_date_head_stop_nbusy, new_nbusy_time = schedule(route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
     new_nbusy_time_dt, date_dt = get_new_nbusy_time_dt(new_nbusy_time, date)
     actural_time_line_point_date_arrive_noduplicate_nbusy = actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
     on_time_rate = punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt)
     return on_time_rate
 
 if __name__ == "__main__":
-    print(main(route_id, trip_headsign, date, stop, nbusy_time))
+    print(main(route_id, direction_id, date, stop, nbusy_time))

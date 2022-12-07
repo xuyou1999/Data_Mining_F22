@@ -69,27 +69,35 @@ def get_new_nbusy_time_dt(new_nbusy_time, date):
     return new_nbusy_time_dt, date_dt
 
 def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
+    # load data
+    if date <= 20210919:
+        trips = pd.read_csv('../data/gtfs3Sept/trips.csv')
+        calendar = pd.read_csv('../data/gtfs3Sept/calendar.csv')
+        stop_times = pd.read_csv('../data/gtfs3Sept/stop_times.csv')
+    else:
+        trips = pd.read_csv('../data/gtfs23Sept/trips.csv')
+        calendar = pd.read_csv('../data/gtfs23Sept/calendar.csv')
+        stop_times = pd.read_csv('../data/gtfs23Sept/stop_times.csv')
     # trips
-    trips = pd.concat([pd.read_csv('../data/gtfs3Sept/trips.csv'), pd.read_csv('../data/gtfs23Sept/trips.csv')])
     trips_line = trips.loc[trips['route_id']==route_id,:]
     trip_line_head = trips_line.loc[trips_line['trip_headsign']==trip_headsign,:]
     # calendar
-    calendar = pd.concat([pd.read_csv('../data/gtfs3Sept/calendar.csv'), pd.read_csv('../data/gtfs23Sept/calendar.csv')])
     calendar_week = calendar.loc[((calendar['start_date']<=date) & (calendar['end_date']>=date)),:]
     calendar_week_day = calendar_week.loc[calendar_week[day_of_week]==1,:]
     trip_line_date_head = pd.merge(left=trip_line_head, right=calendar_week_day, on='service_id', how='inner').loc[:,['route_id','service_id','trip_id']]
     # stop_times
-    stop_times = pd.concat([pd.read_csv('../data/gtfs3Sept/stop_times.csv'), pd.read_csv('../data/gtfs23Sept/stop_times.csv')])
     time_line_date_head = pd.merge(left=trip_line_date_head, right=stop_times, on='trip_id')
     time_line_date_head_stop = time_line_date_head.loc[time_line_date_head['stop_id']==stop,:]
+    time_line_date_head_stop = time_line_date_head_stop.sort_values('arrival_time')
     # transform index to time
     for i in range(len(new_nbusy_time)):
         for j in range(2):
-            new_nbusy_time[i][j] = time_line_date_head_stop.sort_values('arrival_time')['arrival_time'].values[new_nbusy_time[i][j]]
+            new_nbusy_time[i][j] = time_line_date_head_stop['arrival_time'].values[new_nbusy_time[i][j]]
     select = (time_line_date_head_stop['arrival_time']>=new_nbusy_time[0][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[0][1])
     for i in range(len(new_nbusy_time)):
         select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[i][1]))
     time_line_date_head_stop_nbusy = time_line_date_head_stop.loc[select,:]
+    print(time_line_date_head_stop_nbusy)
     return time_line_date_head_stop_nbusy, new_nbusy_time
 
 def actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):

@@ -4,7 +4,8 @@ route_id = 25
 trip_headsign = 'BOONDAEL GARE'
 date = 20210907
 stop = '5407F'
-nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
+# nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
+nbusy_time = [[0,8], [10,12]]
 
 def unix_to_datetime(unix_time):
     return pd.to_datetime(unix_time,unit="ms",origin="unix")
@@ -16,7 +17,8 @@ def get_derived_var(stop, route_id, date, nbusy_time):
     stop_no_letter = ""
     if stop[-1].isalpha():
         stop_no_letter = stop[:-1]
-    date_dt = "{}-{}-{}".format(str(date)[:4], str(date)[4:6], str(date)[-2:])
+    else:
+        stop_no_letter = stop
     # get route short name
     routes = pd.concat([pd.read_csv('../data/gtfs3Sept/routes.csv'), pd.read_csv('../data/gtfs23Sept/routes.csv')])
     route_short_name = routes.loc[routes["route_id"]==route_id,:]["route_short_name"].values[0]
@@ -48,7 +50,10 @@ def get_derived_var(stop, route_id, date, nbusy_time):
             start = nbusy_time[i][0]
             end = nbusy_time[i][1]
     new_nbusy_time.append([start, end])
-    # create datetime like list for actural time
+    return stop_no_letter, route_short_name, day_of_week, new_nbusy_time
+
+def get_new_nbusy_time_dt(new_nbusy_time, date):
+    date_dt = "{}-{}-{}".format(str(date)[:4], str(date)[4:6], str(date)[-2:])
     new_nbusy_time_dt = []
     for i in range(len(new_nbusy_time)):
         new_nbusy_time_dt.append([])
@@ -61,7 +66,7 @@ def get_derived_var(stop, route_id, date, nbusy_time):
                 if len(h) == 1:
                     h = "0"+h
                 new_nbusy_time_dt[i].append((pd.to_datetime(date_dt, format='%Y-%m-%d')+pd.Timedelta(days=1)).strftime("%Y-%m-%d")+" "+(h+new_nbusy_time[i][j][2:]))
-    return stop_no_letter, date_dt, route_short_name, day_of_week, new_nbusy_time, new_nbusy_time_dt
+    return new_nbusy_time_dt, date_dt
 
 def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
     # trips
@@ -77,11 +82,15 @@ def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
     stop_times = pd.concat([pd.read_csv('../data/gtfs3Sept/stop_times.csv'), pd.read_csv('../data/gtfs23Sept/stop_times.csv')])
     time_line_date_head = pd.merge(left=trip_line_date_head, right=stop_times, on='trip_id')
     time_line_date_head_stop = time_line_date_head.loc[time_line_date_head['stop_id']==stop,:]
+    # transform index to time
+    for i in range(len(new_nbusy_time)):
+        for j in range(2):
+            new_nbusy_time[i][j] = time_line_date_head_stop.sort_values('arrival_time')['arrival_time'].values[new_nbusy_time[i][j]]
     select = (time_line_date_head_stop['arrival_time']>=new_nbusy_time[0][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[0][1])
     for i in range(len(new_nbusy_time)):
         select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[i][1]))
     time_line_date_head_stop_nbusy = time_line_date_head_stop.loc[select,:]
-    return time_line_date_head_stop_nbusy
+    return time_line_date_head_stop_nbusy, new_nbusy_time
 
 def actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
     actural_time = pd.concat([pd.read_csv('../data/vehiclePosition01.csv'),pd.read_csv('../data/vehiclePosition02.csv'),pd.read_csv('../data/vehiclePosition03.csv'),pd.read_csv('../data/vehiclePosition04.csv'),pd.read_csv('../data/vehiclePosition05.csv'),pd.read_csv('../data/vehiclePosition06.csv'),pd.read_csv('../data/vehiclePosition07.csv'),pd.read_csv('../data/vehiclePosition08.csv'),pd.read_csv('../data/vehiclePosition09.csv'),pd.read_csv('../data/vehiclePosition10.csv'),pd.read_csv('../data/vehiclePosition11.csv'),pd.read_csv('../data/vehiclePosition12.csv'),pd.read_csv('../data/vehiclePosition13.csv')])
@@ -117,18 +126,24 @@ def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arr
     actural_time_line_point_date_arrive_noduplicate_nbusy['Time'] - pd.Timestamp(date_dt+' 00:00:00')
     for t in time_line_date_head_stop_nbusy['arrival_time'].apply(pd.to_timedelta):
         ot = False
-        for at in actural_time_line_point_date_arrive_noduplicate_nbusy['Time'] - pd.Timestamp(date_dt+' 00:00:00'):
+        for at_i in range(actural_time_line_point_date_arrive_noduplicate_nbusy.shape[0]):
+            at = actural_time_line_point_date_arrive_noduplicate_nbusy['Time'].iloc[at_i] - pd.Timestamp(date_dt+' 00:00:00')
             t_dif = t - at
-            if t_dif <= pd.Timedelta('00:00:45') and t_dif >= pd.Timedelta('-00:00:75'):
-                ot = True
+            if actural_time_line_point_date_arrive_noduplicate_nbusy["DistanceFromPoint"].iloc[at_i] != 0:
+                if t_dif <= pd.Timedelta('00:00:45') and t_dif >= pd.Timedelta('-00:00:75'):
+                    ot = True
+            else:
+                if t_dif <= pd.Timedelta('00:01:00') and t_dif >= pd.Timedelta('-00:01:00'):
+                    ot = True
         if ot == True:
             on_time+=1
     on_time_rate = on_time/len(time_line_date_head_stop_nbusy['arrival_time'])
     return on_time_rate
 
 def main(route_id, trip_headsign, date, stop, nbusy_time):
-    stop_no_letter, date_dt, route_short_name, day_of_week, new_nbusy_time, new_nbusy_time_dt = get_derived_var(stop, route_id, date, nbusy_time)
-    time_line_date_head_stop_nbusy = schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time)
+    stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
+    time_line_date_head_stop_nbusy, new_nbusy_time = schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time)
+    new_nbusy_time_dt, date_dt = get_new_nbusy_time_dt(new_nbusy_time, date)
     actural_time_line_point_date_arrive_noduplicate_nbusy = actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
     on_time_rate = punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt)
     return on_time_rate

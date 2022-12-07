@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+
 # example input variables
 route_id = 25
 trip_headsign = 'BOONDAEL GARE'
@@ -97,7 +99,7 @@ def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
     for i in range(len(new_nbusy_time)):
         select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[i][1]))
     time_line_date_head_stop_nbusy = time_line_date_head_stop.loc[select,:]
-    return time_line_date_head_stop_nbusy, new_nbusy_time
+    return (time_line_date_head_stop_nbusy, new_nbusy_time)
 
 def actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
     actural_time = pd.concat([pd.read_csv('../data/vehiclePosition01.csv'),pd.read_csv('../data/vehiclePosition02.csv'),pd.read_csv('../data/vehiclePosition03.csv'),pd.read_csv('../data/vehiclePosition04.csv'),pd.read_csv('../data/vehiclePosition05.csv'),pd.read_csv('../data/vehiclePosition06.csv'),pd.read_csv('../data/vehiclePosition07.csv'),pd.read_csv('../data/vehiclePosition08.csv'),pd.read_csv('../data/vehiclePosition09.csv'),pd.read_csv('../data/vehiclePosition10.csv'),pd.read_csv('../data/vehiclePosition11.csv'),pd.read_csv('../data/vehiclePosition12.csv'),pd.read_csv('../data/vehiclePosition13.csv')])
@@ -146,6 +148,7 @@ def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arr
             on_time+=1
     on_time_rate = on_time/len(time_line_date_head_stop_nbusy['arrival_time'])
     return on_time_rate
+    
 
 def main(route_id, trip_headsign, date, stop, nbusy_time):
     stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)

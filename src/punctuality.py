@@ -93,11 +93,10 @@ def schedule(route_id, trip_headsign, date, day_of_week, stop, new_nbusy_time):
     for i in range(len(new_nbusy_time)):
         for j in range(2):
             new_nbusy_time[i][j] = time_line_date_head_stop['arrival_time'].values[new_nbusy_time[i][j]]
-    select = (time_line_date_head_stop['arrival_time']>=new_nbusy_time[0][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[0][1])
+    select = (time_line_date_head_stop['arrival_time']>=new_nbusy_time[0][0]) & (time_line_date_head_stop['arrival_time']<new_nbusy_time[0][1])
     for i in range(len(new_nbusy_time)):
-        select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[i][1]))
+        select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<new_nbusy_time[i][1]))
     time_line_date_head_stop_nbusy = time_line_date_head_stop.loc[select,:]
-    print(time_line_date_head_stop_nbusy)
     return time_line_date_head_stop_nbusy, new_nbusy_time
 
 def actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
@@ -122,9 +121,9 @@ def actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
         else:
             select_list.append(True)
     actural_time_line_point_date_arrive_noduplicate = actural_time_line_point_date_arrive_noduplicate.loc[select_list,:]
-    select = (actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[0][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<=pd.to_datetime(new_nbusy_time_dt[0][1]))
+    select = (actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[0][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<pd.to_datetime(new_nbusy_time_dt[0][1]))
     for i in range(len(new_nbusy_time_dt)):
-        select = select | ((actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[i][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<=pd.to_datetime(new_nbusy_time_dt[i][1])))
+        select = select | ((actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[i][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<pd.to_datetime(new_nbusy_time_dt[i][1])))
     actural_time_line_point_date_arrive_noduplicate_nbusy = actural_time_line_point_date_arrive_noduplicate.loc[select,:]
     return actural_time_line_point_date_arrive_noduplicate_nbusy
 

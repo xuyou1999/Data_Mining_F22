@@ -57,7 +57,7 @@ def get_derived_var(stop, route_id, date, nbusy_time):
     start = nbusy_time[0][0]
     end = nbusy_time[0][1]
     for i in range(1, len(nbusy_time)):
-        if nbusy_time[i][0] == end:
+        if nbusy_time[i][0] == end+1:
             end = nbusy_time[i][1]
         else:
             new_nbusy_time.append([start, end])

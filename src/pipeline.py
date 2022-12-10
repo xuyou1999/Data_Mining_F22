@@ -84,7 +84,7 @@ def get_join_tables(trips, calendar, stop_times):
     trips.head()
     trip_calendar = pd.merge(trips,calendar, on='service_id', how='inner')
     trip_calendar_stop_times = pd.merge(trip_calendar,stop_times, on='trip_id', how='inner')
-    trip_calendar_stop_times_select = trip_calendar_stop_times.loc[:,['route_id', 'trip_headsign','monday','tuesday','wednesday','thursday','friday','saturday','sunday', 'start_date', 'end_date','stop_id']].drop_duplicates()
+    trip_calendar_stop_times_select = trip_calendar_stop_times.loc[:,['route_id', 'direction_id','monday','tuesday','wednesday','thursday','friday','saturday','sunday', 'start_date', 'end_date','stop_id']].drop_duplicates()
     return trip_calendar_stop_times, trip_calendar_stop_times_select
 
 
@@ -211,18 +211,26 @@ def get_busy_times(stop_id, trip_id, stop_times):
 def main():
     trips_3, calendar_3, stop_times_3, trips_23, calendar_23, stop_times_23 = load_data()
     trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_3, calendar_3, stop_times_3)
-    for i in range(22000, 40000, 1000):
-        print('i', i)
+    for i in range(1):
         route_id = trip_calendar_stop_times_select.iloc[i,0]
-        trip_headsign = trip_calendar_stop_times_select.iloc[i,1]
+        direction_id = trip_calendar_stop_times_select.iloc[i,1]
         for date in range(trip_calendar_stop_times_select.iloc[i,9],trip_calendar_stop_times_select.iloc[i,10]+1):
             day_of_week = get_day_of_week(date)
             if trip_calendar_stop_times_select.iloc[i][day_of_week] == 1:
                 stop_id = trip_calendar_stop_times_select.iloc[i,11]
-                trip_id = trip_calendar_stop_times[(trip_calendar_stop_times['trip_headsign'] == trip_headsign) & (trip_calendar_stop_times['route_id'] == route_id) & (trip_calendar_stop_times['start_date'] <= date) & (trip_calendar_stop_times['end_date'] >= date)]['trip_id'].values[0]
-                print(route_id, trip_headsign, date, stop_id, trip_id)
-                punc_input = get_busy_times(stop_id, trip_id, stop_times_3)
-                print(punc_input)
+                print(route_id, direction_id, date, stop_id)
+                arrival = trip_calendar_stop_times.loc[trip_calendar_stop_times['route_id'] == route_id]
+                arrival = arrival.loc[arrival['direction_id'] == direction_id]
+                arrival = arrival.loc[(arrival['start_date'] <= date) & (arrival['end_date'] >= date)]
+                arrival = arrival.loc[arrival[day_of_week] == 1]
+                arrival = arrival.loc[arrival['stop_id'] == stop_id]
+                arrival = arrival['arrival_time'].sort_values()
+                print(arrival)
+        # get_arrival_time(trip_calendar_stop_times, trip_calendar_stop_times_select, i)
+                # trip_id = trip_calendar_stop_times[(trip_calendar_stop_times['trip_headsign'] == trip_headsign) & (trip_calendar_stop_times['route_id'] == route_id) & (trip_calendar_stop_times['start_date'] <= date) & (trip_calendar_stop_times['end_date'] >= date)]['trip_id'].values[0]
+                
+                # punc_input = get_busy_times(stop_id, trip_id, stop_times_3)
+                # print(punc_input)
     return 0
 
 if __name__ == '__main__':

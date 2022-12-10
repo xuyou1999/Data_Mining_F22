@@ -31,10 +31,10 @@ def calculate_supplement(nbusy_time, last_number):
 
 #[[8, 10], [12, 15], [16, 18]]
     
-def regularity(stop, route_id, date, trip_headsign, nbusy_time,last_number):
+def regularity_list(stop, route_id, date, direction_id, nbusy_time,last_number):
     busy_time = calculate_supplement(nbusy_time, last_number)
     stop_no_letter, route_short_name, day_of_week, new_busy_time = get_derived_var(stop, route_id, date, busy_time)
-    time_line_date_head_stop_busy, new_busy_time = schedule(route_id, trip_headsign, date, day_of_week, stop, new_busy_time)
+    time_line_date_head_stop_busy, new_busy_time = schedule(route_id, direction_id, date, day_of_week, stop, new_busy_time)
     new_busy_time_dt, date_dt = get_new_nbusy_time_dt(new_busy_time, date)
     actural_time_line_point_date_arrive_noduplicate_busy = actural(route_short_name, stop_no_letter, date_dt, new_busy_time_dt)
     

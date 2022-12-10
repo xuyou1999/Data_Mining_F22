@@ -9,6 +9,18 @@ stop = '5407F'
 # nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
 nbusy_time = [[0,8], [10,12]]
 
+def load_data(date):
+    if date <= 20210919:
+        trips = pd.read_csv('../data/gtfs3Sept/trips.csv')
+        calendar = pd.read_csv('../data/gtfs3Sept/calendar.csv')
+        stop_times = pd.read_csv('../data/gtfs3Sept/stop_times.csv')
+    else:
+        trips = pd.read_csv('../data/gtfs23Sept/trips.csv')
+        calendar = pd.read_csv('../data/gtfs23Sept/calendar.csv')
+        stop_times = pd.read_csv('../data/gtfs23Sept/stop_times.csv')
+    actural_time = pd.concat([pd.read_csv('../data/vehiclePosition01.csv'),pd.read_csv('../data/vehiclePosition02.csv'),pd.read_csv('../data/vehiclePosition03.csv'),pd.read_csv('../data/vehiclePosition04.csv'),pd.read_csv('../data/vehiclePosition05.csv'),pd.read_csv('../data/vehiclePosition06.csv'),pd.read_csv('../data/vehiclePosition07.csv'),pd.read_csv('../data/vehiclePosition08.csv'),pd.read_csv('../data/vehiclePosition09.csv'),pd.read_csv('../data/vehiclePosition10.csv'),pd.read_csv('../data/vehiclePosition11.csv'),pd.read_csv('../data/vehiclePosition12.csv'),pd.read_csv('../data/vehiclePosition13.csv')])
+    return trips, calendar, stop_times, actural_time
+
 def unix_to_datetime(unix_time):
     return pd.to_datetime(unix_time,unit="ms",origin="unix")
 
@@ -70,16 +82,7 @@ def get_new_nbusy_time_dt(new_nbusy_time, date):
                 new_nbusy_time_dt[i].append((pd.to_datetime(date_dt, format='%Y-%m-%d')+pd.Timedelta(days=1)).strftime("%Y-%m-%d")+" "+(h+new_nbusy_time[i][j][2:]))
     return new_nbusy_time_dt, date_dt
 
-def schedule_helper(route_id, direction_id, date, day_of_week, stop, new_nbusy_time):
-    # load data
-    if date <= 20210919:
-        trips = pd.read_csv('../data/gtfs3Sept/trips.csv')
-        calendar = pd.read_csv('../data/gtfs3Sept/calendar.csv')
-        stop_times = pd.read_csv('../data/gtfs3Sept/stop_times.csv')
-    else:
-        trips = pd.read_csv('../data/gtfs23Sept/trips.csv')
-        calendar = pd.read_csv('../data/gtfs23Sept/calendar.csv')
-        stop_times = pd.read_csv('../data/gtfs23Sept/stop_times.csv')
+def schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, day_of_week, stop, new_nbusy_time):
     # trips
     trips_line = trips.loc[trips['route_id']==route_id,:]
     trip_line_head = trips_line.loc[trips_line['direction_id']==direction_id,:]
@@ -97,16 +100,15 @@ def schedule_helper(route_id, direction_id, date, day_of_week, stop, new_nbusy_t
             new_nbusy_time[i][j] = time_line_date_head_stop['arrival_time'].values[new_nbusy_time[i][j]]
     return time_line_date_head_stop, new_nbusy_time
 
-def schedule(route_id, direction_id, date, day_of_week, stop, new_nbusy_time):
-    time_line_date_head_stop, new_nbusy_time = schedule_helper(route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
+def schedule(time_line_date_head_stop, new_nbusy_time):
     select = (time_line_date_head_stop['arrival_time']>=new_nbusy_time[0][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[0][1])
     for i in range(len(new_nbusy_time)):
         select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[i][1]))
     time_line_date_head_stop_nbusy = time_line_date_head_stop.loc[select,:]
-    return (time_line_date_head_stop_nbusy, new_nbusy_time)
+    time_line_date_head_stop_busy = time_line_date_head_stop.loc[~select,:]
+    return (time_line_date_head_stop_nbusy, new_nbusy_time, time_line_date_head_stop_busy)
 
-def actural_helper(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
-    actural_time = pd.concat([pd.read_csv('../data/vehiclePosition01.csv'),pd.read_csv('../data/vehiclePosition02.csv'),pd.read_csv('../data/vehiclePosition03.csv'),pd.read_csv('../data/vehiclePosition04.csv'),pd.read_csv('../data/vehiclePosition05.csv'),pd.read_csv('../data/vehiclePosition06.csv'),pd.read_csv('../data/vehiclePosition07.csv'),pd.read_csv('../data/vehiclePosition08.csv'),pd.read_csv('../data/vehiclePosition09.csv'),pd.read_csv('../data/vehiclePosition10.csv'),pd.read_csv('../data/vehiclePosition11.csv'),pd.read_csv('../data/vehiclePosition12.csv'),pd.read_csv('../data/vehiclePosition13.csv')])
+def actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
     actural_time_line = actural_time.loc[actural_time['LineID']==int(route_short_name),:]
     actural_time_line_point = actural_time_line.loc[actural_time_line['PointID']==int(stop_no_letter),:]
     actural_time_line_point['Time'] = actural_time_line_point['Time'].apply(unix_to_datetime)
@@ -129,13 +131,13 @@ def actural_helper(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
     actural_time_line_point_date_arrive_noduplicate = actural_time_line_point_date_arrive_noduplicate.loc[select_list,:]
     return actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt
 
-def actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
-    actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt = actural_helper(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
+def actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt):
     select = (actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[0][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<pd.to_datetime(new_nbusy_time_dt[0][1]))
     for i in range(len(new_nbusy_time_dt)):
         select = select | ((actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[i][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<pd.to_datetime(new_nbusy_time_dt[i][1])))
     actural_time_line_point_date_arrive_noduplicate_nbusy = actural_time_line_point_date_arrive_noduplicate.loc[select,:]
-    return actural_time_line_point_date_arrive_noduplicate_nbusy
+    actural_time_line_point_date_arrive_noduplicate_busy = actural_time_line_point_date_arrive_noduplicate.loc[~select,:]
+    return actural_time_line_point_date_arrive_noduplicate_nbusy, actural_time_line_point_date_arrive_noduplicate_busy
 
 def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt):
     on_time = 0
@@ -159,10 +161,13 @@ def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arr
     
 
 def main(route_id, direction_id, date, stop, nbusy_time):
+    trips, calendar, stop_times, actural_time = load_data(date)
     stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
-    time_line_date_head_stop_nbusy, new_nbusy_time = schedule(route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
+    time_line_date_head_stop, new_nbusy_time = schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
+    time_line_date_head_stop_nbusy, new_nbusy_time, time_line_date_head_stop_busy = schedule(time_line_date_head_stop, new_nbusy_time)
     new_nbusy_time_dt, date_dt = get_new_nbusy_time_dt(new_nbusy_time, date)
-    actural_time_line_point_date_arrive_noduplicate_nbusy = actural(route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
+    actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt = actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
+    actural_time_line_point_date_arrive_noduplicate_nbusy, actural_time_line_point_date_arrive_noduplicate_busy = actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt)
     on_time_rate = punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt)
     return on_time_rate
 

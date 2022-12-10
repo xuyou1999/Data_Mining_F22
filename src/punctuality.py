@@ -98,6 +98,8 @@ def schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, d
     for i in range(len(new_nbusy_time)):
         for j in range(2):
             new_nbusy_time[i][j] = time_line_date_head_stop['arrival_time'].values[new_nbusy_time[i][j]]
+    
+    time_line_date_head_stop.reset_index(inplace = True,drop = True)
     return time_line_date_head_stop, new_nbusy_time
 
 def schedule(time_line_date_head_stop, new_nbusy_time):
@@ -129,6 +131,7 @@ def actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_
         else:
             select_list.append(True)
     actural_time_line_point_date_arrive_noduplicate = actural_time_line_point_date_arrive_noduplicate.loc[select_list,:]
+    actural_time_line_point_date_arrive_noduplicate.reset_index(inplace = True,drop=True)
     return actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt
 
 def actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt):
@@ -169,6 +172,8 @@ def main(route_id, direction_id, date, stop, nbusy_time):
     actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt = actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
     actural_time_line_point_date_arrive_noduplicate_nbusy, actural_time_line_point_date_arrive_noduplicate_busy = actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt)
     on_time_rate = punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt)
+    
+    # print(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line_date_head_stop_busy)
     return on_time_rate
 
 if __name__ == "__main__":

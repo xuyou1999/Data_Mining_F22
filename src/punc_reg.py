@@ -8,6 +8,11 @@ stop = '5407F'
 # nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
 nbusy_time = [[0,8], [10,12]]
 
+
+
+
+
+
 def main(route_id, direction_id, date, stop, nbusy_time):
     trips, calendar, stop_times, actural_time = load_data(date)
     stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
@@ -17,8 +22,18 @@ def main(route_id, direction_id, date, stop, nbusy_time):
     actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt = actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
     actural_time_line_point_date_arrive_noduplicate_nbusy, actural_time_line_point_date_arrive_noduplicate_busy = actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt)
     on_time_rate = punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt)
-    return on_time_rate
+    regularity_list = regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line_date_head_stop_busy,
+                        actural_time_line_point_date_arrive_noduplicate,actural_time_line_point_date_arrive_noduplicate_nbusy,
+                        actural_time_line_point_date_arrive_noduplicate_busy)
+    # print(time_line_date_head_stop,"\n")
+    # print(time_line_date_head_stop_nbusy,"\n")
+    # print(time_line_date_head_stop_busy,"\n") 
+    # print(actural_time_line_point_date_arrive_noduplicate,"\n")
+    # print(actural_time_line_point_date_arrive_noduplicate_nbusy,"\n")
+    # print(actural_time_line_point_date_arrive_noduplicate_busy,"\n")
+    return (on_time_rate,regularity_list)
+    
+
 
 if __name__ == '__main__':
-    on_time_rate = main(route_id, direction_id, date, stop, nbusy_time)
-    print(on_time_rate)
+    on_time_rate,regularity_list = main(route_id, direction_id, date, stop, nbusy_time)

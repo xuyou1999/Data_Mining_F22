@@ -88,9 +88,9 @@ def get_join_tables(trips, calendar, stop_times):
     return trip_calendar_stop_times, trip_calendar_stop_times_select
 
 
-def get_busy_times(stop_id, trip_id, stop_times):
-    stop_times = stop_times.loc[stop_times['stop_id'] == stop_id].sort_values(by='arrival_time',ascending = True)
-    stop_times = stop_times[stop_times['trip_id'].astype(str).str.contains(str(trip_id)[-9:])]
+def get_busy_times(stop_times):
+    # stop_times = stop_times.loc[stop_times['stop_id'] == stop_id].sort_values(by='arrival_time',ascending = True)
+    # stop_times = stop_times[stop_times['trip_id'].astype(str).str.contains(str(trip_id)[-9:])]
     intervals_array = []
 
     for i in range(len(stop_times['arrival_time'].values)):
@@ -224,13 +224,10 @@ def main():
                 arrival = arrival.loc[(arrival['start_date'] <= date) & (arrival['end_date'] >= date)]
                 arrival = arrival.loc[arrival[day_of_week] == 1]
                 arrival = arrival.loc[arrival['stop_id'] == stop_id]
-                arrival = arrival['arrival_time'].sort_values()
-                print(arrival)
-        # get_arrival_time(trip_calendar_stop_times, trip_calendar_stop_times_select, i)
-                # trip_id = trip_calendar_stop_times[(trip_calendar_stop_times['trip_headsign'] == trip_headsign) & (trip_calendar_stop_times['route_id'] == route_id) & (trip_calendar_stop_times['start_date'] <= date) & (trip_calendar_stop_times['end_date'] >= date)]['trip_id'].values[0]
-                
-                # punc_input = get_busy_times(stop_id, trip_id, stop_times_3)
-                # print(punc_input)
+                arrival = arrival.loc[:,['arrival_time']].sort_values(by=['arrival_time'])
+                # print(arrival)
+                punc_input = get_busy_times(arrival)
+                print(punc_input)
     return 0
 
 if __name__ == '__main__':

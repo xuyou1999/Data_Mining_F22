@@ -252,7 +252,7 @@ def main():
 
 def debug(i):
     trips_3, calendar_3, stop_times_3, trips_23, calendar_23, stop_times_23 = load_data()
-    trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_23, calendar_23, stop_times_23)
+    trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_3, calendar_3, stop_times_3)
 
     print('i', i)
     route_id = trip_calendar_stop_times_select.iloc[i,0]
@@ -271,6 +271,7 @@ def debug(i):
             # print('arrival', arrival.loc[:,['stop_id','arrival_time']].sort_values(by=['stop_id']).head(400))
             arrival = arrival.loc[arrival['stop_id'] == stop_id]
             arrival = arrival.loc[:,['arrival_time']].sort_values(by=['arrival_time'])
+            print(arrival)
             punc_input = get_busy_times(arrival)
             print(punc_input)
     return 0
@@ -278,4 +279,4 @@ def debug(i):
 
 if __name__ == '__main__':
     # main()
-    debug(12741)
+    debug(21293)

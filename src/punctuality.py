@@ -7,7 +7,7 @@ direction_id = 1
 date = 20210907
 stop = '5407F'
 # nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
-nbusy_time = [[0,8], [10,12]]
+nbusy_time = []
 
 def load_data(date):
     if date <= 20210919:
@@ -53,6 +53,9 @@ def get_derived_var(stop, route_id, date, nbusy_time):
     elif day_of_week == 6:
         day_of_week = 'sunday'
     # combine time periods
+    if len(nbusy_time) == 0:
+        new_nbusy_time = []
+        return stop_no_letter, route_short_name, day_of_week, new_nbusy_time
     new_nbusy_time = []
     start = nbusy_time[0][0]
     end = nbusy_time[0][1]
@@ -68,11 +71,13 @@ def get_derived_var(stop, route_id, date, nbusy_time):
 
 def get_new_nbusy_time_dt(new_nbusy_time, date):
     date_dt = "{}-{}-{}".format(str(date)[:4], str(date)[4:6], str(date)[-2:])
+    if len(new_nbusy_time) == 0:
+        return [], date_dt
     new_nbusy_time_dt = []
     for i in range(len(new_nbusy_time)):
         new_nbusy_time_dt.append([])
         for j in range(2):
-            if new_nbusy_time[i][j] <= '24:00:00':
+            if new_nbusy_time[i][j] < '24:00:00':
                 new_nbusy_time_dt[i].append(date_dt+" "+new_nbusy_time[i][j])
             else:
                 h = int(new_nbusy_time[i][j][:2]) - 24
@@ -95,6 +100,8 @@ def schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, d
     time_line_date_head_stop = time_line_date_head.loc[time_line_date_head['stop_id']==stop,:]
     time_line_date_head_stop = time_line_date_head_stop.sort_values('arrival_time')
     # transform index to time
+    print(new_nbusy_time)
+    print(time_line_date_head_stop['arrival_time'].values)
     for i in range(len(new_nbusy_time)):
         for j in range(2):
             new_nbusy_time[i][j] = time_line_date_head_stop['arrival_time'].values[new_nbusy_time[i][j]]
@@ -103,6 +110,8 @@ def schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, d
     return time_line_date_head_stop, new_nbusy_time
 
 def schedule(time_line_date_head_stop, new_nbusy_time):
+    if len(new_nbusy_time) == 0:
+        return pd.DataFrame(columns=time_line_date_head_stop.columns.values.tolist()), new_nbusy_time, time_line_date_head_stop
     select = (time_line_date_head_stop['arrival_time']>=new_nbusy_time[0][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[0][1])
     for i in range(len(new_nbusy_time)):
         select = select | ((time_line_date_head_stop['arrival_time']>=new_nbusy_time[i][0]) & (time_line_date_head_stop['arrival_time']<=new_nbusy_time[i][1]))
@@ -113,10 +122,14 @@ def schedule(time_line_date_head_stop, new_nbusy_time):
 def actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt):
     actural_time_line = actural_time.loc[actural_time['LineID']==int(route_short_name),:]
     actural_time_line_point = actural_time_line.loc[actural_time_line['PointID']==int(stop_no_letter),:]
+    if len(actural_time_line_point) == 0:
+        return actural_time_line_point, new_nbusy_time_dt
     actural_time_line_point['Time'] = actural_time_line_point['Time'].apply(unix_to_datetime)
     actural_time_line_point_date = actural_time_line_point.loc[actural_time_line_point['Time'].dt.date == pd.to_datetime(date_dt).date(),:]
     actural_time_line_point_date['Time'] = (actural_time_line_point_date['Time'] + pd.Timedelta('02:00:00'))
     actural_time_line_point_date_arrive = actural_time_line_point_date.loc[actural_time_line_point_date['DistanceFromPoint']<=200,:]
+    if len(actural_time_line_point_date_arrive) == 0:
+        return actural_time_line_point_date_arrive, new_nbusy_time_dt
     select_list = [True]
     for i in range(1, len(actural_time_line_point_date_arrive)):
         if (actural_time_line_point_date_arrive.iloc[i,0] - actural_time_line_point_date_arrive.iloc[i-1,0] <= pd.Timedelta('00:00:45')) and (actural_time_line_point_date_arrive.iloc[i,0] - actural_time_line_point_date_arrive.iloc[i-1,0] >= pd.Timedelta('00:00:15')):
@@ -135,6 +148,8 @@ def actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_
     return actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt
 
 def actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt):
+    if len(new_nbusy_time_dt) == 0:
+        return pd.DataFrame(columns=actural_time_line_point_date_arrive_noduplicate.columns.values.tolist()),actural_time_line_point_date_arrive_noduplicate
     select = (actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[0][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<pd.to_datetime(new_nbusy_time_dt[0][1]))
     for i in range(len(new_nbusy_time_dt)):
         select = select | ((actural_time_line_point_date_arrive_noduplicate['Time']>=pd.to_datetime(new_nbusy_time_dt[i][0])) & (actural_time_line_point_date_arrive_noduplicate['Time']<pd.to_datetime(new_nbusy_time_dt[i][1])))
@@ -144,6 +159,10 @@ def actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt):
 
 def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt):
     on_time = 0
+    if time_line_date_head_stop_nbusy.shape[0] == 0:
+        return -1
+    if actural_time_line_point_date_arrive_noduplicate_nbusy.shape[0] == 0:
+        return 0
     time_line_date_head_stop_nbusy['arrival_time'].apply(pd.to_timedelta)
     actural_time_line_point_date_arrive_noduplicate_nbusy['Time'] - pd.Timestamp(date_dt+' 00:00:00')
     for t in time_line_date_head_stop_nbusy['arrival_time'].apply(pd.to_timedelta):

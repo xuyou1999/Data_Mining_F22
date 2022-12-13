@@ -100,8 +100,6 @@ def schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, d
     time_line_date_head_stop = time_line_date_head.loc[time_line_date_head['stop_id']==stop,:]
     time_line_date_head_stop = time_line_date_head_stop.sort_values('arrival_time')
     # transform index to time
-    print(new_nbusy_time)
-    print(time_line_date_head_stop['arrival_time'].values)
     for i in range(len(new_nbusy_time)):
         for j in range(2):
             new_nbusy_time[i][j] = time_line_date_head_stop['arrival_time'].values[new_nbusy_time[i][j]]

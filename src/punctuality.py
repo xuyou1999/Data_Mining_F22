@@ -7,7 +7,7 @@ direction_id = 1
 date = 20210907
 stop = '5407F'
 # nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
-nbusy_time = []
+nbusy_time = [[1,6]]
 
 def load_data(date):
     if date <= 20210919:
@@ -27,14 +27,14 @@ def unix_to_datetime(unix_time):
 def datetime_to_unix(dt):
     return int(pd.Timestamp.timestamp(pd.Timestamp(dt))*1000)
 
-def get_derived_var(stop, route_id, date, nbusy_time):
+def get_derived_var(stop, route_id, date, nbusy_time, day):
     stop_no_letter = ""
     if stop[-1].isalpha():
         stop_no_letter = stop[:-1]
     else:
         stop_no_letter = stop
     # get route short name
-    routes = pd.concat([pd.read_csv('../data/gtfs3Sept/routes.csv'), pd.read_csv('../data/gtfs23Sept/routes.csv')])
+    routes = pd.read_csv('../data/gtfs{}Sept/routes.csv'.format(day))
     route_short_name = routes.loc[routes["route_id"]==route_id,:]["route_short_name"].values[0]
     # Get day of week
     day_of_week = pd.to_datetime(str(date), format='%Y%m%d').dayofweek
@@ -182,7 +182,7 @@ def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arr
 
 def main(route_id, direction_id, date, stop, nbusy_time):
     trips, calendar, stop_times, actural_time = load_data(date)
-    stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
+    stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 3)
     time_line_date_head_stop, new_nbusy_time = schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
     time_line_date_head_stop_nbusy, new_nbusy_time, time_line_date_head_stop_busy = schedule(time_line_date_head_stop, new_nbusy_time)
     new_nbusy_time_dt, date_dt = get_new_nbusy_time_dt(new_nbusy_time, date)

@@ -16,7 +16,7 @@ def calc(trips, calendar, stop_times, actural_time):
     count = 0
     file_number = 0
     for i in range(0, len(input_data)):
-    # for i in range(69261, 69262):
+    # for i in range(0, 5):
         start = time.time()
         print(i)
         # print(input_data.iloc[i,:])
@@ -24,13 +24,13 @@ def calc(trips, calendar, stop_times, actural_time):
         route_id = int(input_data.iloc[i,1])
         direction_id = int(input_data.iloc[i,2])
         date = int(input_data.iloc[i,3])
-        if date <= 20210906:
+        if date <= 20210906 or date >= 20210921:
             continue
         stop = str(input_data.iloc[i,4])
         nbusy_time = input_data.iloc[i,5]
         nbusy_time = ast.literal_eval(nbusy_time)
         try:
-            stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
+            stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 23)
             time_line_date_head_stop, new_nbusy_time = schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
             time_line_date_head_stop_nbusy, new_nbusy_time, time_line_date_head_stop_busy = schedule(time_line_date_head_stop, new_nbusy_time)
             new_nbusy_time_dt, date_dt = get_new_nbusy_time_dt(new_nbusy_time, date)
@@ -51,6 +51,7 @@ def calc(trips, calendar, stop_times, actural_time):
             # print(on_time_rate,regularity_list)
             output_df.loc[len(output_df)] =[org_row, route_id, direction_id, date, stop, on_time_rate, regularity_list['schedule_waiting_time'], regularity_list['actual_waiting_time'], regularity_list['excess_waiting_time']]
             count += 1
+            print(count)
         except:
             error_f = open('../result/error_pun_reg_23.txt', 'a')
             error_f.write('{}, {}, {}, {}, {}, {} \n'.format(i, org_row, route_id, direction_id, date, stop))
@@ -63,7 +64,7 @@ def calc(trips, calendar, stop_times, actural_time):
     output_df.to_csv("../result/output_sept23_{}.csv".format(file_number), index=False)
 
 def test(trips, calendar, stop_times, actural_time):
-    stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time)
+    stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 3)
     # print(new_nbusy_time)
     time_line_date_head_stop, new_nbusy_time = schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
     time_line_date_head_stop_nbusy, new_nbusy_time, time_line_date_head_stop_busy = schedule(time_line_date_head_stop, new_nbusy_time)
@@ -76,7 +77,7 @@ def test(trips, calendar, stop_times, actural_time):
                         actural_time_line_point_date_arrive_noduplicate_busy)
 
 def main():
-    trips, calendar, stop_times, actural_time = load_data(20210923)
+    trips, calendar, stop_times, actural_time = load_data(20210920)
     # test(trips, calendar, stop_times, actural_time)
     calc(trips, calendar, stop_times, actural_time)
     

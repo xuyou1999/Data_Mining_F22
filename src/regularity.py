@@ -230,11 +230,12 @@ def regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line
     return_dict["excess_waiting_time"] = excess_list
     
     if len(busy_time_schedule) == 0:
-        schedule_count = []
+        weighted_excess = np.nan
     else:
         schedule_count = [len(item) for item in busy_time_schedule]
+        weighted_excess = np.sum(np.multiply(schedule_count,excess_list))/np.sum(schedule_count)
     
-    return return_dict, schedule_count
+    return return_dict, weighted_excess
     
     
    

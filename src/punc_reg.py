@@ -16,8 +16,8 @@ def calc(trips, calendar, stop_times, actural_time):
     output_df = pd.DataFrame(columns=['org_row', 'route_id', 'direction_id', 'date', 'stop_id', 'on_time_rate', 'schedule_waiting_time', 'actual_waiting_time', 'excess_waiting_time', 'weighted_excess', 'a_devided_s'])
     count = 0
     file_number = 0
-    # for i in range(0, len(input_data)):
-    for i in range(30000, 30020):
+    for i in range(0, len(input_data)):
+    # for i in range(30000, 30020):
     # for j in range(0, len(err_file)):
         # i = err_file.iloc[j,0]
         start = time.time()

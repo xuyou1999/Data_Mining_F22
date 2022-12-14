@@ -98,9 +98,7 @@ def get_busy_times(stop_times):
             intervals_array.append(datetime_calculator(stop_times['arrival_time'].values[i+1],stop_times['arrival_time'].values[i]))
         except IndexError:
             intervals_array.append('00:00:00')
-
-    intervals_array = [float(intervals_array[i].split(':')[1]) for i in range(len(intervals_array))]
-    intervals_array
+    intervals_array = [float(intervals_array[i].split(':')[1])+60*float(intervals_array[i].split(':')[0]) for i in range(len(intervals_array))]
 
     stop_times['intervals']=intervals_array
 
@@ -158,7 +156,7 @@ def get_busy_times(stop_times):
 
     iterable = other
     other = [list(group) for group in mit.consecutive_groups(iterable)]
-    print('other',other)
+    # print('other',other)
     #for special cases
     special_case = []
     other_copy = other.copy()
@@ -180,7 +178,7 @@ def get_busy_times(stop_times):
         for special in special_case:
             if special[0] == subls[0]-1:
                 subls[0]=special[0]
-    print(final_group)
+    # print(final_group)
 
     reg_or_punc = []
     mean = np.median(intervals_array)
@@ -203,18 +201,18 @@ def get_busy_times(stop_times):
             reg_or_punc.append("Regular Zone")
     
     df = pd.DataFrame(list(zip(final_group,reg_or_punc)))
-    print(df)
+    # print(df)
     punc_input = df[df[1] == "Punctual Zone"].loc[:,0].sort_values().to_list()
     return punc_input
 
 
 def main():
     trips_3, calendar_3, stop_times_3, trips_23, calendar_23, stop_times_23 = load_data()
-    trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_3, calendar_3, stop_times_3)
+    trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_23, calendar_23, stop_times_23)
     punc_input_table = pd.DataFrame(columns=['org_row','route_id', 'direction_id','date','stop_id', 'punc'])
     count = 0
-    file_number = 1210
-    for i in range(37240, len(trip_calendar_stop_times_select)):
+    file_number = 0
+    for i in range(0, len(trip_calendar_stop_times_select)):
     # for i in range(1901, 1950):
         print('i', i)
         route_id = trip_calendar_stop_times_select.iloc[i,0]
@@ -225,7 +223,7 @@ def main():
             day_of_week = get_day_of_week(date)
             if trip_calendar_stop_times_select.iloc[i][day_of_week] == 1:
                 stop_id = trip_calendar_stop_times_select.iloc[i,11]
-                print(route_id, direction_id, date, stop_id)
+                # print(route_id, direction_id, date, stop_id)
                 arrival = trip_calendar_stop_times.loc[trip_calendar_stop_times['route_id'] == route_id]
                 arrival = arrival.loc[arrival['direction_id'] == direction_id]
                 arrival = arrival.loc[(arrival['start_date'] <= date) & (arrival['end_date'] >= date)]
@@ -237,17 +235,16 @@ def main():
                     punc_input = get_busy_times(arrival)
                     punc_input_table.loc[len(punc_input_table)] = [i,route_id, direction_id, date, stop_id, punc_input]
                     count += 1
-                    print(punc_input)
                 except:
-                    error_f = open('../result/error.txt', 'a')
+                    error_f = open('../result/error23.txt', 'a')
                     error_f.write('{}, {}, {}, {}, {} \n'.format(i, route_id, direction_id, date, stop_id))
                     error_f.close()
-        if count >= 1000:
-            punc_input_table.to_csv('../result/punc_input_table_{}.csv'.format(file_number))
+        if count >= 2000:
+            punc_input_table.to_csv('../result/punc_input_table23_{}.csv'.format(file_number))
             file_number += 1
             count = 0
             punc_input_table = pd.DataFrame(columns=['org_row','route_id', 'direction_id','date','stop_id', 'punc'])
-    punc_input_table.to_csv('../result/punc_input_table_{}.csv'.format(file_number))
+    punc_input_table.to_csv('../result/punc_input_table23_{}.csv'.format(file_number))
     return 0
 
 def debug(i):
@@ -278,5 +275,5 @@ def debug(i):
 
 
 if __name__ == '__main__':
-    # main()
-    debug(21293)
+    main()
+    # debug(21336)

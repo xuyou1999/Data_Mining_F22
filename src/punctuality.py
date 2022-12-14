@@ -164,7 +164,7 @@ def actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt):
 def punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt):
     on_time = 0
     if time_line_date_head_stop_nbusy.shape[0] == 0:
-        return -1
+        return np.nan
     if actural_time_line_point_date_arrive_noduplicate_nbusy.shape[0] == 0:
         return 0
     time_line_date_head_stop_nbusy['arrival_time'].apply(pd.to_timedelta)

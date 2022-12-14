@@ -11,12 +11,15 @@ stop = '5407F'
 nbusy_time = [[4,8], [15,39], [40,60]]
 
 def calc(trips, calendar, stop_times, actural_time):
-    input_data = pd.read_csv("../result/punc_input_table_sept23.csv")
+    err_file = pd.read_csv('../result/error_pun_reg_3.txt')
+    input_data = pd.read_csv("../result/punc_input_table_sept3.csv")
     output_df = pd.DataFrame(columns=['org_row', 'route_id', 'direction_id', 'date', 'stop_id', 'on_time_rate', 'schedule_waiting_time', 'actual_waiting_time', 'excess_waiting_time'])
     count = 0
-    file_number = 0
-    for i in range(0, len(input_data)):
-    # for i in range(0, 5):
+    file_number = 100
+    # for i in range(0, len(input_data)):
+    # for i in range(82395, 82396):
+    for j in range(0, len(err_file)):
+        i = err_file.iloc[j,0]
         start = time.time()
         print(i)
         # print(input_data.iloc[i,:])
@@ -53,15 +56,16 @@ def calc(trips, calendar, stop_times, actural_time):
             count += 1
             print(count)
         except:
-            error_f = open('../result/error_pun_reg_23.txt', 'a')
+            # error_f = open('../result/error_pun_reg_3.txt', 'a')
+            error_f = open('../result/error_pun_reg_3_new.txt', 'a')
             error_f.write('{}, {}, {}, {}, {}, {} \n'.format(i, org_row, route_id, direction_id, date, stop))
             error_f.close()
         if count >= 1000:
-            output_df.to_csv("../result/output_sept23_{}.csv".format(file_number), index=False)
+            output_df.to_csv("../result/output_sept3_{}.csv".format(file_number), index=False)
             file_number += 1
             count = 0
             output_df = pd.DataFrame(columns=['org_row', 'route_id', 'direction_id', 'date', 'stop_id', 'on_time_rate', 'schedule_waiting_time', 'actual_waiting_time', 'excess_waiting_time'])
-    output_df.to_csv("../result/output_sept23_{}.csv".format(file_number), index=False)
+    output_df.to_csv("../result/output_sept3_{}.csv".format(file_number), index=False)
 
 def test(trips, calendar, stop_times, actural_time):
     stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 3)
@@ -77,7 +81,7 @@ def test(trips, calendar, stop_times, actural_time):
                         actural_time_line_point_date_arrive_noduplicate_busy)
 
 def main():
-    trips, calendar, stop_times, actural_time = load_data(20210920)
+    trips, calendar, stop_times, actural_time = load_data(20210917)
     # test(trips, calendar, stop_times, actural_time)
     calc(trips, calendar, stop_times, actural_time)
     

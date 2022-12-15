@@ -50,7 +50,7 @@ def calc(trips, calendar, stop_times, actural_time):
                 regularity_list, weighted_excess = regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line_date_head_stop_busy,
                                     actural_time_line_point_date_arrive_noduplicate,actural_time_line_point_date_arrive_noduplicate_nbusy,
                                     actural_time_line_point_date_arrive_noduplicate_busy)
-            a_devided_s = len(time_line_date_head_stop)/len(actural_time_line_point_date_arrive_noduplicate)
+            a_devided_s = len(actural_time_line_point_date_arrive_noduplicate)/len(time_line_date_head_stop)
             reg_time = time.time()
             # print(punc_time-start, reg_time-punc_time)
             # print(on_time_rate,regularity_list)

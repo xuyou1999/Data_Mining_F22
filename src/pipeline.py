@@ -208,7 +208,7 @@ def get_busy_times(stop_times):
 
 def main():
     trips_3, calendar_3, stop_times_3, trips_23, calendar_23, stop_times_23 = load_data()
-    trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_23, calendar_23, stop_times_23)
+    trip_calendar_stop_times, trip_calendar_stop_times_select = get_join_tables(trips_3, calendar_3, stop_times_3)
     punc_input_table = pd.DataFrame(columns=['org_row','route_id', 'direction_id','date','stop_id', 'punc'])
     count = 0
     file_number = 0
@@ -236,15 +236,15 @@ def main():
                     punc_input_table.loc[len(punc_input_table)] = [i,route_id, direction_id, date, stop_id, punc_input]
                     count += 1
                 except:
-                    error_f = open('../result/error23.txt', 'a')
+                    error_f = open('../result/error3.txt', 'a')
                     error_f.write('{}, {}, {}, {}, {} \n'.format(i, route_id, direction_id, date, stop_id))
                     error_f.close()
         if count >= 2000:
-            punc_input_table.to_csv('../result/punc_input_table23_{}.csv'.format(file_number))
+            punc_input_table.to_csv('../result/punc_input_table3_{}.csv'.format(file_number))
             file_number += 1
             count = 0
             punc_input_table = pd.DataFrame(columns=['org_row','route_id', 'direction_id','date','stop_id', 'punc'])
-    punc_input_table.to_csv('../result/punc_input_table23_{}.csv'.format(file_number))
+    punc_input_table.to_csv('../result/punc_input_table3_{}.csv'.format(file_number))
     return 0
 
 def debug(i):

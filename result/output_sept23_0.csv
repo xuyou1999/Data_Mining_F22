@@ -1,0 +1,2 @@
+org_row,route_id,direction_id,date,stop_id,on_time_rate,schedule_waiting_time,actual_waiting_time,excess_waiting_time,weighted_excess,a_devided_s
+64,16,0,20210920,6432,,[15.0],[31.22830833333334],[16.22830833333334],16.22830833333334,0.6666666666666666

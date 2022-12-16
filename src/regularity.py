@@ -70,11 +70,12 @@ from Datetime_Calculator import datetime_calculator
 
 #t_change: "2021-09-08 04:59:00.976000"
 #t_schedule: "05:08:00"
-def unix_to_hour_min_sec(t_change,t_schedule):
+def unix_to_hour_min_sec(t_change,t_schedule,earliest_date):
     #"08"
-    #t_change_dayy = int(t_change[8:10])
+    
     #"04"
     t_change = str(t_change["Time"])
+    t_change_dayy = int(t_change[8:10])
     t_change_hour = t_change[11:13]
     #print(t_change_hour)
     #"59"
@@ -84,7 +85,9 @@ def unix_to_hour_min_sec(t_change,t_schedule):
     #"05"
     t_schedule_hour = t_schedule[0:2]
     t_change_hour_plus_24 = 0
-    if int(t_change_hour) < int(t_schedule_hour):
+    #*************************************************Add date condition*******************************
+    #Add the next and condition
+    if (int(t_change_hour) < int(t_schedule_hour)) and (int(t_change_dayy) > int(earliest_date)):
         t_change_hour_plus_24 = int(t_change_hour)+24
         
         return int(t_change_hour_plus_24) * 3600 + int(t_change_min) * 60 + t_change_seconds
@@ -114,6 +117,7 @@ def regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line
     last_schedule_index = time_line_date_head_stop.shape[0] -1
     busy_index_list = []
     busy_group = time_line_date_head_stop_busy.groupby(time_line_date_head_stop_busy.index.to_series().diff().ne(1).cumsum()).groups
+    #print(len(busy_group[1]))
     for value in [list(g) for g in dict(busy_group).values()]:
         expand_lst = []
         if len(value) ==1:
@@ -153,13 +157,17 @@ def regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line
         busy_index_list.append(expand_lst)
         
     busy_time_schedule = [schedule_total["arrival_time"].iloc[lst].apply(lambda x: int(x[0:2])*3600+int(x[3:5])*60+int(x[6:7])) for lst  in busy_index_list ]
-    
+    #print(busy_time_schedule[0])
     
     #Use this
-    actual_busy_apply = actual_busy.apply(lambda x: unix_to_hour_min_sec(x,schedule_total.iloc[0].values[0]),axis = 1)
-    #print(actual_busy_apply)
-
     
+    #*************************************************change here********************************************
+    earliest_date = str(actural_time_line_point_date_arrive_noduplicate_busy["Time"].iloc[0])[8:10]
+    actual_busy_apply = actual_busy.apply(lambda x: unix_to_hour_min_sec(x,schedule_total.iloc[0].values[0],earliest_date),axis = 1)
+    #print(actual_busy_apply.head(50))
+    print(actual_busy)
+    print("Actual_busy_apply:",actual_busy_apply.head(70))
+    print("busy_time_schedule:",busy_time_schedule[0].head(70))
     actual_time_inside_schedule = []
     
     for busy_interval in busy_time_schedule:
@@ -174,8 +182,8 @@ def regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line
         actual_time_inside_schedule.append(actual_time_in_interval)
         
         
-    
-        
+    print(actual_time_inside_schedule)
+         
         
     schedule_waiting_time = []
     for item in busy_time_schedule:

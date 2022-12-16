@@ -160,7 +160,7 @@ def regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line
     #print(busy_time_schedule[0])
     
     #Use this
-    
+    print(schedule_total)
     #*************************************************change here********************************************
     earliest_date = str(actural_time_line_point_date_arrive_noduplicate_busy["Time"].iloc[0])[8:10]
     actual_busy_apply = actual_busy.apply(lambda x: unix_to_hour_min_sec(x,schedule_total.iloc[0].values[0],earliest_date),axis = 1)
@@ -214,7 +214,7 @@ def regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line
             else:
                 search_next =indx +1
                 time_unix = actural_time_line_point_date_arrive_noduplicate.iloc[search_next]
-                time_in_second = unix_to_hour_min_sec(time_unix,schedule_total.iloc[0].values[0])
+                time_in_second = unix_to_hour_min_sec(time_unix,schedule_total.iloc[0].values[0],earliest_date)
                 one_value_interval = np.square(time_in_second - value_1)/2/(time_in_second - value_1)/60
                 
                 actual_waiting_time.append(one_value_interval)

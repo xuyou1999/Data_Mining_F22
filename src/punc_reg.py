@@ -3,12 +3,12 @@ from regularity import *
 import ast
 import time
 # example input variables
-route_id = 25
-direction_id = 1
-date = 20210907
-stop = '5407F'
+route_id = 65
+direction_id = 0
+date = 20210909
+stop = '3510B'
 # nbusy_time = [['05:00:00', '07:00:00'], ['07:00:00', '09:00:00'], ['16:00:00', '20:00:00'], ['20:00:00', '25:00:00']]
-nbusy_time = [[4,8], [15,39], [40,60]]
+nbusy_time = []
 
 def calc(trips, calendar, stop_times, actural_time):
     # err_file = pd.read_csv('../result/error_pun_reg_3.txt')
@@ -78,17 +78,19 @@ def test(trips, calendar, stop_times, actural_time):
     actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt = actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_nbusy_time_dt)
     actural_time_line_point_date_arrive_noduplicate_nbusy, actural_time_line_point_date_arrive_noduplicate_busy = actural(actural_time_line_point_date_arrive_noduplicate, new_nbusy_time_dt)
     on_time_rate = punctuality(time_line_date_head_stop_nbusy, actural_time_line_point_date_arrive_noduplicate_nbusy, date_dt)
-    regularity_list, schedule_count = regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line_date_head_stop_busy,
-                        actural_time_line_point_date_arrive_noduplicate,actural_time_line_point_date_arrive_noduplicate_nbusy,
-                        actural_time_line_point_date_arrive_noduplicate_busy)
-    print(schedule_count)
+    regularity_list, weighted_excess = regularity(time_line_date_head_stop,time_line_date_head_stop_nbusy,time_line_date_head_stop_busy,
+                    actural_time_line_point_date_arrive_noduplicate,actural_time_line_point_date_arrive_noduplicate_nbusy,
+                    actural_time_line_point_date_arrive_noduplicate_busy)
+    print(actural_time_line_point_date_arrive_noduplicate_busy.iloc[24:30,:])
+    print(on_time_rate,regularity_list)
+    print(weighted_excess)
     # print(len(time_line_date_head_stop))
     # print(len(actural_time_line_point_date_arrive_noduplicate))
 
 def main():
     trips, calendar, stop_times, actural_time = load_data(20210917)
-    # test(trips, calendar, stop_times, actural_time)
-    calc(trips, calendar, stop_times, actural_time)
+    test(trips, calendar, stop_times, actural_time)
+    # calc(trips, calendar, stop_times, actural_time)
     
     # print(time_line_date_head_stop,"\n")
     # print(time_line_date_head_stop_nbusy,"\n")

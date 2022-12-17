@@ -12,12 +12,12 @@ nbusy_time = []
 
 def calc(trips, calendar, stop_times, actural_time):
     # err_file = pd.read_csv('../result/error_pun_reg_3.txt')
-    input_data = pd.read_csv("../result/punc_input_table3.csv")
+    input_data = pd.read_csv("../result/punc_input_table23.csv")
     output_df = pd.DataFrame(columns=['org_row', 'route_id', 'direction_id', 'date', 'stop_id', 'on_time_rate', 'schedule_waiting_time', 'actual_waiting_time', 'excess_waiting_time', 'weighted_excess', 'a_devided_s'])
     count = 0
     file_number = 100
     # for i in range(0, len(input_data)):
-    for i in range(31938, 60000):
+    for i in range(0, 60000):
     # for j in range(0, len(err_file)):
         # i = err_file.iloc[j,0]
         start = time.time()
@@ -33,7 +33,7 @@ def calc(trips, calendar, stop_times, actural_time):
         nbusy_time = input_data.iloc[i,5]
         nbusy_time = ast.literal_eval(nbusy_time)
         try:
-            stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 3)
+            stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 23)
             time_line_date_head_stop, new_nbusy_time = schedule_helper(trips, calendar, stop_times, route_id, direction_id, date, day_of_week, stop, new_nbusy_time)
             time_line_date_head_stop_nbusy, new_nbusy_time, time_line_date_head_stop_busy = schedule(time_line_date_head_stop, new_nbusy_time)
             new_nbusy_time_dt, date_dt = get_new_nbusy_time_dt(new_nbusy_time, date)
@@ -58,16 +58,16 @@ def calc(trips, calendar, stop_times, actural_time):
             count += 1
             print(count)
         except:
-            error_f = open('../result/error_pun_reg_3.txt', 'a')
+            error_f = open('../result/error_pun_reg_23.txt', 'a')
             # error_f = open('../result/error_pun_reg_3_new.txt', 'a')
             error_f.write('{}, {}, {}, {}, {}, {} \n'.format(i, org_row, route_id, direction_id, date, stop))
             error_f.close()
         if count >= 1000:
-            output_df.to_csv("../result/output_sept3_{}.csv".format(file_number), index=False)
+            output_df.to_csv("../result/output_sept23_{}.csv".format(file_number), index=False)
             file_number += 1
             count = 0
             output_df = pd.DataFrame(columns=['org_row', 'route_id', 'direction_id', 'date', 'stop_id', 'on_time_rate', 'schedule_waiting_time', 'actual_waiting_time', 'excess_waiting_time', 'weighted_excess', 'a_devided_s'])
-    output_df.to_csv("../result/output_sept3_{}.csv".format(file_number), index=False)
+    output_df.to_csv("../result/output_sept23_{}.csv".format(file_number), index=False)
 
 def test(trips, calendar, stop_times, actural_time):
     stop_no_letter, route_short_name, day_of_week, new_nbusy_time = get_derived_var(stop, route_id, date, nbusy_time, 23)
@@ -93,7 +93,7 @@ def test(trips, calendar, stop_times, actural_time):
     # print(len(actural_time_line_point_date_arrive_noduplicate))
 
 def main():
-    trips, calendar, stop_times, actural_time = load_data(20210917)
+    trips, calendar, stop_times, actural_time = load_data(20210923)
     # test(trips, calendar, stop_times, actural_time)
     calc(trips, calendar, stop_times, actural_time)
     

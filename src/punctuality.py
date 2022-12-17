@@ -128,9 +128,9 @@ def actural_helper(actural_time, route_short_name, stop_no_letter, date_dt, new_
     actural_time_line_point = actural_time_line.loc[actural_time_line['PointID']==int(stop_no_letter),:]
     if len(actural_time_line_point) == 0:
         return actural_time_line_point, new_nbusy_time_dt
-    actural_time_line_point['Time'] = actural_time_line_point['Time'].apply(unix_to_datetime)
+    actural_time_line_point['Time'] = actural_time_line_point['Time'].apply(unix_to_datetime).apply(lambda x: x- pd.Timedelta('02:00:00'))
     actural_time_line_point_date = actural_time_line_point.loc[actural_time_line_point['Time'].dt.date == pd.to_datetime(date_dt).date(),:]
-    actural_time_line_point_date['Time'] = (actural_time_line_point_date['Time'] + pd.Timedelta('02:00:00'))
+    actural_time_line_point_date['Time'] = (actural_time_line_point_date['Time'] + pd.Timedelta('04:00:00'))
     actural_time_line_point_date_arrive = actural_time_line_point_date.loc[actural_time_line_point_date['DistanceFromPoint']<=200,:]
     if len(actural_time_line_point_date_arrive) == 0:
         return actural_time_line_point_date_arrive, new_nbusy_time_dt
